@@ -1,7 +1,5 @@
 package com.wipro.service;
 
-
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +15,7 @@ import com.wipro.exception.InvalidCredentialsException;
 import com.wipro.exception.UserAlreadyExistsException;
 import com.wipro.repository.UserRepository;
 import com.wipro.security.CustomUserDetailsService;
-import com.wipro.security.JwtService;
+import com.wipro.security.JWTUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,7 +27,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final JwtService jwtService;
+    private final JWTUtil jwtUtil;
 
     private final AuthenticationManager authenticationManager;
 
@@ -55,12 +53,9 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        UserDetails userDetails =
-                userDetailsService.loadUserByUsername(
-                        user.getEmail());
-
         String token =
-                jwtService.generateToken(userDetails);
+                jwtUtil.generateToken(
+                        user.getEmail());
 
         return AuthResponse.builder()
                 .token(token)
@@ -89,7 +84,8 @@ public class AuthServiceImpl implements AuthService {
                         request.getEmail());
 
         String token =
-                jwtService.generateToken(userDetails);
+                jwtUtil.generateToken(
+                        userDetails.getUsername());
 
         return AuthResponse.builder()
                 .token(token)
