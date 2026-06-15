@@ -5,6 +5,7 @@ package com.wipro.service;
 import org.springframework.stereotype.Service;
 
 import com.wipro.entity.FitnessProfile;
+import com.wipro.entity.User;
 import com.wipro.exception.UserNotFoundException;
 import com.wipro.repository.FitnessProfileRepository;
 
@@ -27,23 +28,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public FitnessProfile updateProfile(
-            Long userId,
-            FitnessProfile profile) {
+    public FitnessProfile updateProfile(Long userId, FitnessProfile profile) {
 
-        FitnessProfile existingProfile =
-                profileRepository
-                        .findByUserId(userId)
-                        .orElseThrow(() ->
-                                new UserNotFoundException(
-                                        "Profile not found"));
+        return profileRepository.findByUserId(userId)
+                .map(existing -> {
+                    existing.setAge(profile.getAge());
+                    existing.setHeight(profile.getHeight());
+                    existing.setWeight(profile.getWeight());
+                    existing.setGoal(profile.getGoal());
+                    existing.setGender(profile.getGender());
+                    return profileRepository.save(existing);
+                })
+                .orElseGet(() -> {
 
-        existingProfile.setAge(profile.getAge());
-        existingProfile.setHeight(profile.getHeight());
-        existingProfile.setWeight(profile.getWeight());
-        existingProfile.setGoal(profile.getGoal());
-        existingProfile.setGender(profile.getGender());
+                    FitnessProfile newProfile = new FitnessProfile();
 
-        return profileRepository.save(existingProfile);
+                    
+                    User user = new User();
+                    user.setId(userId);
+                    newProfile.setUser(user);
+
+                    newProfile.setAge(profile.getAge());
+                    newProfile.setHeight(profile.getHeight());
+                    newProfile.setWeight(profile.getWeight());
+                    newProfile.setGoal(profile.getGoal());
+                    newProfile.setGender(profile.getGender());
+
+                    return profileRepository.save(newProfile);
+                });
     }
+
+
 }
